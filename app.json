@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "ECHO iPhone",
+    "slug": "echo-ios",
+    "scheme": "echo",
+    "version": "0.1.0",
+    "platforms": ["ios"],
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "app.echo.next.ios",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "ECHO iPhone connects to ECHO NEXT on your local network for playback control and library browsing.",
+        "NSBonjourServices": ["_echo-link._tcp"],
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoadsInLocalNetworking": true
+        }
+      }
+    }
+  }
+}
