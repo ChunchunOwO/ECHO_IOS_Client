@@ -4,7 +4,9 @@
     "slug": "echo-ios",
     "scheme": "echo",
     "version": "0.1.0",
-    "platforms": ["ios"],
+    "platforms": [
+      "ios"
+    ],
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -12,11 +14,23 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "ECHO iPhone connects to ECHO NEXT on your local network for playback control and library browsing.",
-        "NSBonjourServices": ["_echo-link._tcp"],
+        "NSBonjourServices": [
+          "_echo-link._tcp"
+        ],
         "NSAppTransportSecurity": {
           "NSAllowsLocalNetworking": true
         }
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true,
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ]
+    ]
   }
 }
