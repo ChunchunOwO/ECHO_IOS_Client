@@ -1,7 +1,9 @@
 # ECHO iPhone
 
 This is the first iPhone-side ECHO Link client. It is intentionally built with Expo + React Native so the mobile work can reuse TypeScript knowledge instead of starting with SwiftUI.
+
 **YOU NEED NOTICED THAT ""Echo_IOS"" IT’S NOT A OFFICIAL PROJECT**
+Here is ECHO Project's Link >> github.com/Moekotori/ECHO
 
 ## What Works First
 
