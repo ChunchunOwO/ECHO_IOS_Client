@@ -6,7 +6,7 @@ An experimental iOS companion app for [ECHO NEXT](https://github.com/Moekotori/E
 
 ## Highlights
 
-- Apple Music inspired playback page with a compact gray/white visual style.
+- Simple playback page with a compact gray/white visual style.
 - Acrylic-style bottom dock with three pages: Playback, Library, and Connection.
 - Pairing-link and manual LAN connection support.
 - Live playback status refresh for title, state, progress, volume, and queue.
