@@ -1,52 +1,51 @@
 <p align="center">
-  <img src="docs/app-icon.svg" width="86" alt="ECHO iPhone icon" />
+  <img src="docs/app-icon.png" width="96" alt="ECHO iPhone icon" />
 </p>
 
 <h1 align="center">ECHO iPhone</h1>
 
 <p align="center">
-  An iPhone music-player companion for <a href="https://github.com/Moekotori/ECHO">ECHO NEXT</a>.
+  An unofficial iPhone companion for <a href="https://github.com/Moekotori/ECHO">ECHO NEXT</a>.
 </p>
 
 <p align="center">
   <strong>English</strong> · <a href="README.md">中文</a> · <a href="RELEASE_NOTES.md">Release Notes</a>
 </p>
 
-![ECHO iPhone preview](docs/preview.svg)
+![ECHO iPhone ACG preview](docs/preview.svg)
 
 > This is an unofficial community project and is not maintained by the official ECHO NEXT project.
 
 ## What It Is
 
-ECHO iPhone turns an iPhone into a lightweight music-player client for the ECHO NEXT desktop app. It connects through EchoLink, browses the PC library, controls playback, shows live status, and can stream supported PC tracks to the phone.
+ECHO iPhone turns an iPhone into a lightweight music-player client for the ECHO NEXT desktop app. It connects through EchoLink, browses the PC library, controls playback, shows live status, and can stream supported tracks to the phone.
 
-The interface aims for a calm gray/white player aesthetic: centered artwork in normal mode, a compact lyrics mode, liquid-glass dock, glassy controls, and swipeable page navigation.
+This release focuses on a full UI refresh: the playback page is denser and more polished, the lyrics view now feels like a proper reading screen, and the dock uses a unified glass style.
 
-## Features
+## Highlights
 
-- EchoLink pairing URI and manual LAN connection.
+- EchoLink pairing URI support and manual LAN connection.
 - Three pages: Playback, Library, and Connection.
-- Swipe between pages and use the bottom dock.
-- Gaussian glass style controls powered by `expo-blur`.
-- Live playback status, title, progress, volume, and queue refresh.
-- Draggable progress and volume controls.
-- Expandable mini volume slider in lyrics mode.
-- Previous, play/pause, next.
-- Real repeat-one behavior on the client side.
-- Queue preview popover.
+- Swipe navigation plus a redesigned bottom dock.
+- Full-screen playback layout with denser controls.
+- Glassmorphism controls powered by `expo-blur`.
+- Lyrics mode with large text, auto-scroll, and active-line highlighting.
+- Tap-to-seek for timestamped lyrics.
+- Stable artwork loading that avoids flicker.
+- Drag progress and volume controls with gesture lock to prevent interruptions.
+- Previous, play/pause, next, repeat-one, and queue preview.
 - Library search and PC playback entry.
-- Artwork loading with fallback.
-- Lyrics panel with `/lyrics`, LRC parsing, active line highlight, and tap-to-seek for timestamped lyrics.
-- Control/stream output switch.
-- Optional metadata tags when EchoLink provides them.
+- Artwork loading with fallback behavior.
+- Control / stream output switch.
+- Metadata tags when EchoLink provides them.
 
 ## Requirements
 
 - Node.js and npm
-- Expo through `npx expo`
-- macOS + Xcode for local iOS builds, or GitHub Actions for unsigned IPA artifacts
-- ECHO NEXT desktop with EchoLink enabled
-- Sideloadly, AltStore, Xcode, or another signing/install path for real-device testing
+- Expo via `npx expo`
+- macOS + Xcode for local iOS builds
+- GitHub Actions for unsigned IPA generation on Windows
+- A signing/install method such as Sideloadly or AltStore for device testing
 
 ## Run Locally
 
@@ -67,7 +66,7 @@ iOS export check:
 npx expo export --platform ios --output-dir build\export-check
 ```
 
-## Connect To ECHO NEXT
+## Connect to ECHO NEXT
 
 Pairing URI example:
 
@@ -77,7 +76,7 @@ echo://pair?host=192.168.1.12&port=26789&token=...
 
 Manual fields:
 
-- Host: PC LAN IP, for example `192.168.2.27`
+- Host: PC LAN IP
 - Port: usually `26789`
 - Token: copied from the desktop EchoLink pairing screen
 
@@ -85,12 +84,12 @@ If connection fails, check LAN, firewall, EchoLink status, host IP, and iOS loca
 
 ## Build Unsigned IPA
 
-Windows can trigger the workflow, but actual iOS packaging requires a macOS/Xcode runner.
+Windows can trigger the workflow, but actual iOS packaging requires macOS/Xcode.
 
-1. Push this repo to GitHub.
+1. Push the repo to GitHub.
 2. Run `Build iOS unsigned IPA` in GitHub Actions.
 3. Download the `ECHO-iPhone-unsigned-ipa` artifact.
-4. Sign/install with Sideloadly, AltStore, Xcode, or another tool.
+4. Sign/install it with Sideloadly, AltStore, Xcode, or another tool.
 
 Local Mac:
 

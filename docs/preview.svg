@@ -1,68 +1,91 @@
-<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1200" height="720" rx="44" fill="#F4F4F1"/>
-  <circle cx="220" cy="120" r="150" fill="#FFFFFF" fill-opacity="0.8"/>
-  <circle cx="980" cy="620" r="220" fill="#E7E7E2" fill-opacity="0.78"/>
-  <text x="80" y="105" fill="#18181B" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="42" font-weight="800">ECHO iPhone</text>
-  <text x="82" y="144" fill="#71717A" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="18" font-weight="600">灰白音乐播放器风格 · EchoLink 控制 · 手机串流 · 歌词模式</text>
-  <g filter="url(#shadow)">
-    <rect x="94" y="190" width="288" height="462" rx="44" fill="#111113"/>
-    <rect x="108" y="204" width="260" height="434" rx="34" fill="#F7F7F4"/>
-    <rect x="148" y="244" width="180" height="180" rx="26" fill="#E7E7E4"/>
-    <path d="M203 352V294L279 284V339" stroke="#18181B" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="203" cy="354" r="14" fill="#18181B"/>
-    <circle cx="279" cy="341" r="14" fill="#18181B"/>
-    <text x="146" y="464" fill="#18181B" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" font-weight="800">Moonlit Drive</text>
-    <text x="146" y="492" fill="#71717A" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" font-weight="700">WASAPI · Local · 可串流</text>
-    <rect x="146" y="518" width="180" height="6" rx="3" fill="#DADAD6"/>
-    <rect x="146" y="518" width="92" height="6" rx="3" fill="#18181B"/>
-    <circle cx="238" cy="568" r="34" fill="#18181B"/>
-    <path d="M231 552L255 568L231 584V552Z" fill="white"/>
-    <circle cx="177" cy="568" r="24" fill="white" stroke="#EFEFEB"/>
-    <text x="168" y="577" fill="#18181B" font-family="Inter" font-size="34">‹</text>
-    <circle cx="299" cy="568" r="24" fill="white" stroke="#EFEFEB"/>
-    <text x="291" y="577" fill="#18181B" font-family="Inter" font-size="34">›</text>
+<svg width="1400" height="820" viewBox="0 0 1400 820" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="820" rx="52" fill="#F7F2EA"/>
+  <circle cx="198" cy="132" r="168" fill="#FFDCEB" fill-opacity="0.8"/>
+  <circle cx="1160" cy="668" r="250" fill="#DCEBFF" fill-opacity="0.88"/>
+  <circle cx="720" cy="104" r="148" fill="#FFF7D6" fill-opacity="0.7"/>
+  <path d="M90 688C234 596 315 725 472 650C604 587 580 430 716 382C852 334 948 432 1061 348C1156 278 1197 159 1302 138" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round" stroke-opacity="0.82"/>
+
+  <g filter="url(#softShadow)">
+    <rect x="88" y="88" width="1224" height="644" rx="44" fill="white" fill-opacity="0.58" stroke="white" stroke-width="2"/>
   </g>
-  <g filter="url(#shadow)">
-    <rect x="456" y="142" width="322" height="510" rx="48" fill="#111113"/>
-    <rect x="471" y="157" width="292" height="480" rx="36" fill="#F7F7F4"/>
-    <rect x="499" y="188" width="108" height="108" rx="22" fill="#E7E7E4"/>
-    <text x="623" y="208" fill="#18181B" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" font-weight="800">Late Summer</text>
-    <text x="623" y="236" fill="#71717A" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" font-weight="800">FLAC · 44.1kHz</text>
-    <rect x="500" y="306" width="236" height="184" rx="24" fill="#18181B"/>
-    <text x="524" y="350" fill="#A1A1AA" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15" font-weight="700">00:48  把夜色调成柔和</text>
-    <text x="524" y="394" fill="#FFFFFF" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" font-weight="900">当前歌词轻轻发光</text>
-    <text x="524" y="438" fill="#A1A1AA" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15" font-weight="700">00:56  下一句慢慢靠近</text>
-    <rect x="500" y="512" width="150" height="6" rx="3" fill="#DADAD6"/>
-    <rect x="500" y="512" width="78" height="6" rx="3" fill="#18181B"/>
-    <rect x="662" y="494" width="70" height="36" rx="18" fill="white" stroke="#EFEFEB"/>
-    <text x="676" y="517" fill="#18181B" font-family="Inter" font-size="12" font-weight="900">VOL 62%</text>
-    <circle cx="617" cy="574" r="37" fill="#18181B"/>
-    <text x="606" y="587" fill="white" font-family="Inter" font-size="34" font-weight="900">Ⅱ</text>
-    <circle cx="544" cy="574" r="27" fill="white" stroke="#EFEFEB"/>
-    <text x="534" y="584" fill="#18181B" font-family="Inter" font-size="36">‹</text>
-    <circle cx="690" cy="574" r="27" fill="white" stroke="#EFEFEB"/>
-    <text x="681" y="584" fill="#18181B" font-family="Inter" font-size="36">›</text>
-  </g>
-  <g filter="url(#shadow)">
-    <rect x="852" y="190" width="254" height="392" rx="42" fill="#111113"/>
-    <rect x="866" y="204" width="226" height="364" rx="32" fill="#F7F7F4"/>
-    <text x="894" y="262" fill="#18181B" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="30" font-weight="900">曲库</text>
-    <rect x="894" y="292" width="166" height="42" rx="21" fill="white" stroke="#EFEFEB"/>
-    <text x="914" y="319" fill="#71717A" font-family="Inter" font-size="13" font-weight="700">搜索歌曲、艺术家</text>
-    <g>
-      <rect x="894" y="360" width="46" height="46" rx="13" fill="#E7E7E4"/>
-      <text x="954" y="379" fill="#18181B" font-family="Inter" font-size="15" font-weight="800">City Lights</text>
-      <text x="954" y="401" fill="#71717A" font-family="Inter" font-size="11" font-weight="700">Local · 可串流 · 3:42</text>
-    </g>
-    <g>
-      <rect x="894" y="428" width="46" height="46" rx="13" fill="#E7E7E4"/>
-      <text x="954" y="447" fill="#18181B" font-family="Inter" font-size="15" font-weight="800">Soft Echo</text>
-      <text x="954" y="469" fill="#71717A" font-family="Inter" font-size="11" font-weight="700">Local · 可串流 · 4:10</text>
+
+  <text x="134" y="164" fill="#1F2026" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="54" font-weight="900">ECHO iPhone</text>
+  <text x="136" y="206" fill="#6B6470" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="19" font-weight="700">ACG 风格的 ECHO NEXT 手机伴侣 · 播放控制 · 歌词跟随 · 曲库串流</text>
+
+  <g transform="translate(135 252)">
+    <g filter="url(#phoneShadow)">
+      <rect width="300" height="520" rx="48" fill="#17181E"/>
+      <rect x="14" y="16" width="272" height="488" rx="36" fill="#F9F6EE"/>
+      <rect x="36" y="42" width="228" height="78" rx="26" fill="#FFFFFF" fill-opacity="0.78"/>
+      <text x="58" y="74" fill="#918A80" font-family="Inter" font-size="12" font-weight="900" letter-spacing="1.2">NOW PLAYING</text>
+      <text x="58" y="100" fill="#24242A" font-family="Inter" font-size="16" font-weight="900">EchoLink 已连接</text>
+      <rect x="48" y="146" width="204" height="204" rx="38" fill="#EFE8DA"/>
+      <path d="M104 276V202C104 194.3 110.3 188 118 188H194C201.7 188 208 194.3 208 202V258" stroke="#202127" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="104" cy="280" r="24" fill="#202127"/>
+      <circle cx="208" cy="262" r="24" fill="#202127"/>
+      <text x="42" y="388" fill="#1F2026" font-family="Inter" font-size="24" font-weight="900">Moonlit Signal</text>
+      <text x="44" y="416" fill="#7A746D" font-family="Inter" font-size="12" font-weight="800">WASAPI · FLAC · 48kHz · 可串流</text>
+      <rect x="44" y="444" width="210" height="9" rx="5" fill="#DDD7CE"/>
+      <rect x="44" y="444" width="118" height="9" rx="5" fill="#1F2026"/>
+      <circle cx="150" cy="478" r="26" fill="#1F2026"/>
+      <path d="M144 464L164 478L144 492V464Z" fill="white"/>
+      <circle cx="95" cy="478" r="19" fill="#FFFFFF" stroke="#ECE6DD"/>
+      <text x="87" y="486" fill="#1F2026" font-family="Inter" font-size="29">‹</text>
+      <circle cx="205" cy="478" r="19" fill="#FFFFFF" stroke="#ECE6DD"/>
+      <text x="198" y="486" fill="#1F2026" font-family="Inter" font-size="29">›</text>
     </g>
   </g>
+
+  <g transform="translate(500 214)">
+    <g filter="url(#phoneShadow)">
+      <rect width="342" height="558" rx="52" fill="#17181E"/>
+      <rect x="15" y="16" width="312" height="526" rx="39" fill="#1F2026"/>
+      <rect x="36" y="42" width="102" height="102" rx="25" fill="#F3EBDC"/>
+      <path d="M72 107V74C72 69.6 75.6 66 80 66H112C116.4 66 120 69.6 120 74V98" stroke="#222328" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="72" cy="110" r="13" fill="#222328"/>
+      <circle cx="120" cy="101" r="13" fill="#222328"/>
+      <text x="154" y="78" fill="#F8FAFC" font-family="Inter" font-size="23" font-weight="900">歌词跟随模式</text>
+      <text x="154" y="108" fill="#AEB6C8" font-family="Inter" font-size="13" font-weight="800">自动滚动 · 大字号 · 点击跳转</text>
+      <rect x="36" y="168" width="270" height="232" rx="30" fill="#FFFFFF" fill-opacity="0.08" stroke="#FFFFFF" stroke-opacity="0.14"/>
+      <text x="60" y="220" fill="#9EA7BA" font-family="Inter" font-size="20" font-weight="700">00:43  星光落进耳机</text>
+      <text x="60" y="278" fill="#FFFFFF" font-family="Inter" font-size="30" font-weight="900">这一句正在发光</text>
+      <text x="60" y="336" fill="#AEB6C8" font-family="Inter" font-size="20" font-weight="700">00:51  下一拍轻轻靠近</text>
+      <rect x="42" y="424" width="170" height="10" rx="5" fill="#4A4D57"/>
+      <rect x="42" y="424" width="98" height="10" rx="5" fill="#FFFFFF"/>
+      <rect x="226" y="404" width="70" height="42" rx="21" fill="#FFFFFF" fill-opacity="0.16" stroke="#FFFFFF" stroke-opacity="0.18"/>
+      <text x="240" y="431" fill="#FFFFFF" font-family="Inter" font-size="12" font-weight="900">VOL 72</text>
+      <circle cx="171" cy="491" r="39" fill="#FFFFFF"/>
+      <text x="159" y="506" fill="#1F2026" font-family="Inter" font-size="35" font-weight="900">Ⅱ</text>
+      <circle cx="96" cy="491" r="27" fill="#FFFFFF" fill-opacity="0.18" stroke="#FFFFFF" stroke-opacity="0.2"/>
+      <text x="86" y="501" fill="#FFFFFF" font-family="Inter" font-size="36">‹</text>
+      <circle cx="246" cy="491" r="27" fill="#FFFFFF" fill-opacity="0.18" stroke="#FFFFFF" stroke-opacity="0.2"/>
+      <text x="237" y="501" fill="#FFFFFF" font-family="Inter" font-size="36">›</text>
+    </g>
+  </g>
+
+  <g transform="translate(898 252)">
+    <rect width="340" height="94" rx="28" fill="#FFFFFF" fill-opacity="0.72" stroke="#FFFFFF"/>
+    <text x="30" y="38" fill="#1F2026" font-family="Inter" font-size="22" font-weight="900">EchoLink 配对</text>
+    <text x="30" y="66" fill="#776F68" font-family="Inter" font-size="14" font-weight="700">粘贴 echo://pair 即可连接电脑</text>
+    <rect y="124" width="340" height="94" rx="28" fill="#FFFFFF" fill-opacity="0.72" stroke="#FFFFFF"/>
+    <text x="30" y="162" fill="#1F2026" font-family="Inter" font-size="22" font-weight="900">曲库与搜索</text>
+    <text x="30" y="190" fill="#776F68" font-family="Inter" font-size="14" font-weight="700">从手机浏览 PC 本地曲库并点歌</text>
+    <rect y="248" width="340" height="94" rx="28" fill="#FFFFFF" fill-opacity="0.72" stroke="#FFFFFF"/>
+    <text x="30" y="286" fill="#1F2026" font-family="Inter" font-size="22" font-weight="900">手机串流</text>
+    <text x="30" y="314" fill="#776F68" font-family="Inter" font-size="14" font-weight="700">支持格式可切换到 iPhone 播放</text>
+    <rect y="372" width="340" height="94" rx="28" fill="#FFFFFF" fill-opacity="0.72" stroke="#FFFFFF"/>
+    <text x="30" y="410" fill="#1F2026" font-family="Inter" font-size="22" font-weight="900">Windows 触发 IPA</text>
+    <text x="30" y="438" fill="#776F68" font-family="Inter" font-size="14" font-weight="700">GitHub Actions 使用 macOS/Xcode 打包</text>
+  </g>
+
+  <text x="134" y="696" fill="#7A6F75" font-family="Inter" font-size="15" font-weight="800">Unofficial community companion for ECHO NEXT · Expo / React Native / EchoLink</text>
+
   <defs>
-    <filter id="shadow" x="50" y="100" width="1100" height="590" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="26" stdDeviation="24" flood-color="#18181B" flood-opacity="0.18"/>
+    <filter id="softShadow" x="40" y="50" width="1320" height="740" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="24" stdDeviation="26" flood-color="#14151A" flood-opacity="0.12"/>
+    </filter>
+    <filter id="phoneShadow" x="-50" y="-38" width="450" height="650" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="28" stdDeviation="24" flood-color="#14151A" flood-opacity="0.22"/>
     </filter>
   </defs>
 </svg>

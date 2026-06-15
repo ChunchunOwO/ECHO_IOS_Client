@@ -17,6 +17,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
@@ -248,6 +249,7 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryS
 }
 
 function EchoLinkApp(): ReactElement {
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const phonePlayer = useAudioPlayer(null, {
     keepAudioSessionActive: true,
     preferredForwardBufferDuration: 12,
@@ -282,11 +284,15 @@ function EchoLinkApp(): ReactElement {
   const [phoneSeekPreviewMs, setPhoneSeekPreviewMs] = useState<number | null>(null);
   const [progressTrackWidth, setProgressTrackWidth] = useState(0);
   const [volumeTrackWidth, setVolumeTrackWidth] = useState(0);
+  const [lyricsViewportHeight, setLyricsViewportHeight] = useState(0);
   const [failedArtworkUrls, setFailedArtworkUrls] = useState<Set<string>>(() => new Set());
   const [loadedArtworkUrls, setLoadedArtworkUrls] = useState<Set<string>>(() => new Set());
+  const [stableArtworkUrl, setStableArtworkUrl] = useState<string | null>(null);
   const pageTransition = useRef(new Animated.Value(1)).current;
   const lyricsTransition = useRef(new Animated.Value(0)).current;
   const volumeTransition = useRef(new Animated.Value(0)).current;
+  const lyricsScrollRef = useRef<ScrollView | null>(null);
+  const lyricLineLayoutsRef = useRef<Record<string, { height: number; y: number }>>({});
   const lastAlertKeyRef = useRef<string | null>(null);
   const statusPollInFlight = useRef(false);
   const sliderInteractionInFlight = useRef(false);
@@ -319,6 +325,7 @@ function EchoLinkApp(): ReactElement {
     if (!url) {
       return;
     }
+    setStableArtworkUrl(url);
     setLoadedArtworkUrls((current) => {
       if (current.has(url)) {
         return current;
@@ -371,7 +378,8 @@ function EchoLinkApp(): ReactElement {
 
   const pagePanResponder = useMemo(() => PanResponder.create({
     onMoveShouldSetPanResponder: (_, gestureState) => (
-      Math.abs(gestureState.dx) > 46
+      !sliderInteractionInFlight.current
+      && Math.abs(gestureState.dx) > 46
       && Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.65
     ),
     onPanResponderRelease: (_, gestureState) => {
@@ -428,6 +436,14 @@ function EchoLinkApp(): ReactElement {
     });
     setClockMs(now);
     setStatusReceivedAtMs(now);
+  }, []);
+
+  const beginSliderInteraction = useCallback(() => {
+    sliderInteractionInFlight.current = true;
+  }, []);
+
+  const endSliderInteraction = useCallback(() => {
+    sliderInteractionInFlight.current = false;
   }, []);
 
   const refresh = useCallback(async () => {
@@ -740,6 +756,11 @@ function EchoLinkApp(): ReactElement {
       },
     ],
   };
+  const isCompactPlayer = windowWidth < 390 || windowHeight < 760;
+  const playerCoverSize = isCompactPlayer ? Math.min(windowWidth - 92, 228) : Math.min(windowWidth - 80, 272);
+  const playerShellPadding = isCompactPlayer ? 14 : 18;
+  const playerShellGap = isCompactPlayer ? 10 : 14;
+  const playerTitleSize = isCompactPlayer ? 21 : 24;
   const renderButtonBlur = (intensity = 22) => (
     <BlurView
       intensity={intensity}
@@ -747,6 +768,55 @@ function EchoLinkApp(): ReactElement {
       style={styles.glassButtonBlur}
       tint="light"
     />
+  );
+  useEffect(() => {
+    if (!displayArtworkUrl) {
+      setStableArtworkUrl(null);
+    }
+  }, [displayArtworkUrl]);
+
+  useEffect(() => {
+    if (!lyricsVisible || !lyricsScrollRef.current || lyricLineLayoutsRef.current == null) {
+      return;
+    }
+    const activeLine = lyricLines[activeLyricIndex];
+    if (!activeLine?.id) {
+      return;
+    }
+    const layout = lyricLineLayoutsRef.current[activeLine.id];
+    if (!layout) {
+      return;
+    }
+    const targetY = Math.max(0, layout.y - Math.max(24, lyricsViewportHeight * 0.34));
+    lyricsScrollRef.current.scrollTo({ animated: true, y: targetY });
+  }, [activeLyricIndex, lyricLines, lyricsVisible, lyricsViewportHeight]);
+  const renderOutputSwitch = () => (
+    <View style={styles.outputSwitch}>
+      <Pressable
+        accessibilityLabel="控制电脑播放"
+        accessibilityRole="button"
+        disabled={!client || phoneAudioBusy}
+        onPress={switchToPcPlayback}
+        style={[styles.outputSwitchButton, !isPhoneOutput ? styles.outputSwitchButtonActive : null]}
+      >
+        {renderButtonBlur(!isPhoneOutput ? 12 : 18)}
+        <Text style={[styles.outputSwitchText, !isPhoneOutput ? styles.outputSwitchTextActive : null]}>
+          控制
+        </Text>
+      </Pressable>
+      <Pressable
+        accessibilityLabel="串流到手机播放"
+        accessibilityRole="button"
+        disabled={!client || phoneAudioBusy}
+        onPress={switchToPhonePlayback}
+        style={[styles.outputSwitchButton, isPhoneOutput ? styles.outputSwitchButtonActive : null]}
+      >
+        {renderButtonBlur(isPhoneOutput ? 12 : 18)}
+        <Text style={[styles.outputSwitchText, isPhoneOutput ? styles.outputSwitchTextActive : null]}>
+          {phoneAudioBusy ? '...' : '串流'}
+        </Text>
+      </Pressable>
+    </View>
   );
 
   useEffect(() => {
@@ -1091,28 +1161,46 @@ function EchoLinkApp(): ReactElement {
       },
     ],
   };
-  const renderArtwork = (variant: 'default' | 'lyrics') => (
-    <View style={[styles.artworkShell, variant === 'lyrics' ? styles.artworkShellLyrics : null]}>
+  const renderArtwork = (variant: 'default' | 'lyrics') => {
+    const artworkSize = variant === 'lyrics' ? (isCompactPlayer ? 104 : 120) : playerCoverSize;
+    return (
+    <View
+      style={[
+        styles.artworkShell,
+        { borderRadius: variant === 'lyrics' ? 24 : 34, height: artworkSize, width: artworkSize },
+      ]}
+    >
       <View style={styles.artworkFallback}>
         <Text style={[styles.artworkFallbackText, variant === 'lyrics' ? styles.artworkFallbackTextLyrics : null]}>
           ECHO
         </Text>
       </View>
-      {artworkUrlIsVisible(displayArtworkUrl) ? (
+      {stableArtworkUrl ? (
+        <RNImage
+          fadeDuration={0}
+          onError={() => markArtworkUrlFailed(stableArtworkUrl)}
+          onLoad={() => markArtworkUrlLoaded(stableArtworkUrl)}
+          resizeMode="cover"
+          source={{ uri: stableArtworkUrl }}
+          style={[
+            styles.artworkImage,
+            artworkUrlHasLoaded(stableArtworkUrl) ? null : styles.artworkImageHidden,
+          ]}
+        />
+      ) : null}
+      {artworkUrlIsVisible(displayArtworkUrl) && displayArtworkUrl !== stableArtworkUrl ? (
         <RNImage
           fadeDuration={0}
           onError={() => markArtworkUrlFailed(displayArtworkUrl)}
           onLoad={() => markArtworkUrlLoaded(displayArtworkUrl)}
           resizeMode="cover"
           source={{ uri: displayArtworkUrl }}
-          style={[
-            styles.artworkImage,
-            artworkUrlHasLoaded(displayArtworkUrl) ? null : styles.artworkImageHidden,
-          ]}
+          style={[styles.artworkImage, styles.artworkImageHidden]}
         />
       ) : null}
     </View>
-  );
+    );
+  };
   const renderConnectionChip = (variant: 'floating' | 'inline') => (
     <View style={[
       styles.playerConnectionChip,
@@ -1145,12 +1233,26 @@ function EchoLinkApp(): ReactElement {
       <View
         style={[styles.sliderTouchArea, compact ? styles.compactSliderTouchArea : null]}
         onLayout={handleProgressLayout}
+        onStartShouldSetResponderCapture={() => Boolean((client || isPhoneOutput) && playbackDurationMs)}
         onStartShouldSetResponder={() => Boolean((client || isPhoneOutput) && playbackDurationMs)}
         onMoveShouldSetResponder={() => Boolean((client || isPhoneOutput) && playbackDurationMs)}
-        onResponderGrant={(event) => updateSeekFromGesture(event, false)}
-        onResponderMove={(event) => updateSeekFromGesture(event, false)}
-        onResponderRelease={(event) => updateSeekFromGesture(event, true)}
-        onResponderTerminate={(event) => updateSeekFromGesture(event, true)}
+        onResponderGrant={(event) => {
+          beginSliderInteraction();
+          updateSeekFromGesture(event, false);
+        }}
+        onResponderMove={(event) => {
+          beginSliderInteraction();
+          updateSeekFromGesture(event, false);
+        }}
+        onResponderRelease={(event) => {
+          updateSeekFromGesture(event, true);
+          endSliderInteraction();
+        }}
+        onResponderTerminationRequest={() => false}
+        onResponderTerminate={(event) => {
+          updateSeekFromGesture(event, true);
+          endSliderInteraction();
+        }}
       >
         <View style={[styles.progressTrack, compact ? styles.compactProgressTrack : null]}>
           <View style={[styles.progressFill, { width: `${progressRatio * 100}%` }]} />
@@ -1166,12 +1268,26 @@ function EchoLinkApp(): ReactElement {
     <View
       style={[styles.sliderTouchArea, compact ? styles.compactSliderTouchArea : null]}
       onLayout={handleVolumeLayout}
+      onStartShouldSetResponderCapture={() => Boolean(client || isPhoneOutput)}
       onStartShouldSetResponder={() => Boolean(client || isPhoneOutput)}
       onMoveShouldSetResponder={() => Boolean(client || isPhoneOutput)}
-      onResponderGrant={(event) => updateVolumeFromGesture(event, false)}
-      onResponderMove={(event) => updateVolumeFromGesture(event, false)}
-      onResponderRelease={(event) => updateVolumeFromGesture(event, true)}
-      onResponderTerminate={(event) => updateVolumeFromGesture(event, true)}
+      onResponderGrant={(event) => {
+        beginSliderInteraction();
+        updateVolumeFromGesture(event, false);
+      }}
+      onResponderMove={(event) => {
+        beginSliderInteraction();
+        updateVolumeFromGesture(event, false);
+      }}
+      onResponderRelease={(event) => {
+        updateVolumeFromGesture(event, true);
+        endSliderInteraction();
+      }}
+      onResponderTerminationRequest={() => false}
+      onResponderTerminate={(event) => {
+        updateVolumeFromGesture(event, true);
+        endSliderInteraction();
+      }}
     >
       <View style={[styles.volumeTrack, compact ? styles.compactVolumeTrack : null]}>
         <View style={[styles.volumeFill, { width: `${volumePercent}%` }]} />
@@ -1241,7 +1357,7 @@ function EchoLinkApp(): ReactElement {
         accessibilityLabel={repeatOneEnabled ? '关闭单曲循环' : '开启单曲循环'}
         accessibilityRole="button"
         onPress={() => setRepeatOneEnabled((current) => !current)}
-      style={[styles.repeatButton, compact ? styles.repeatButtonCompact : null, repeatOneEnabled ? styles.repeatButtonActive : null]}
+        style={[styles.repeatButton, compact ? styles.repeatButtonCompact : null, repeatOneEnabled ? styles.repeatButtonActive : null]}
       >
         {renderButtonBlur(repeatOneEnabled ? 10 : 22)}
         <Text style={[styles.repeatButtonIcon, repeatOneEnabled ? styles.repeatButtonIconActive : null]}>↻</Text>
@@ -1253,7 +1369,7 @@ function EchoLinkApp(): ReactElement {
         accessibilityLabel={lyricsVisible ? '关闭歌词显示' : '打开歌词显示'}
         accessibilityRole="button"
         onPress={() => setLyricsVisible((current) => !current)}
-      style={[styles.lyricsButton, compact ? styles.lyricsButtonCompact : null, lyricsVisible ? styles.lyricsButtonActive : null]}
+        style={[styles.lyricsButton, compact ? styles.lyricsButtonCompact : null, lyricsVisible ? styles.lyricsButtonActive : null]}
       >
         {renderButtonBlur(lyricsVisible ? 10 : 22)}
         <Text style={[styles.lyricsButtonText, lyricsVisible ? styles.lyricsButtonTextActive : null]}>词</Text>
@@ -1262,7 +1378,7 @@ function EchoLinkApp(): ReactElement {
         accessibilityLabel={playlistOpen ? '关闭播放列表预览' : '打开播放列表预览'}
         accessibilityRole="button"
         onPress={() => setPlaylistOpen((current) => !current)}
-      style={[styles.playlistMiniButton, compact ? styles.playlistMiniButtonCompact : null, playlistOpen ? styles.playlistMiniButtonActive : null]}
+        style={[styles.playlistMiniButton, compact ? styles.playlistMiniButtonCompact : null, playlistOpen ? styles.playlistMiniButtonActive : null]}
       >
         {renderButtonBlur(22)}
         <Text style={styles.playlistMiniIcon}>☰</Text>
@@ -1467,16 +1583,20 @@ function EchoLinkApp(): ReactElement {
               </View>
             ) : (
               <>
-                <View style={[styles.playerCard, lyricsVisible ? styles.playerCardLyrics : null]}>
+                <View
+                  style={[
+                    styles.playerCard,
+                    { gap: playerShellGap, padding: playerShellPadding },
+                    lyricsVisible ? styles.playerCardLyrics : null,
+                  ]}
+                >
+                  <BlurView intensity={32} pointerEvents="none" style={styles.playerCardBlur} tint="light" />
                   {lyricsVisible ? (
                     <Animated.View style={[styles.lyricsMode, lyricsPanelAnimatedStyle]}>
-                      <View style={styles.lyricsHero}>
-                        <View style={styles.lyricsHeroLeft}>
-                          {renderArtwork('lyrics')}
-                          {renderConnectionChip('inline')}
-                        </View>
+                      <View style={styles.lyricsTopBar}>
+                        {renderArtwork('lyrics')}
                         <View style={styles.lyricsHeroText}>
-                          <Text style={styles.trackTitleLyrics} numberOfLines={3}>
+                          <Text style={[styles.trackTitleLyrics, { fontSize: playerTitleSize }]} numberOfLines={2}>
                             {displayTrack?.title ?? '没有正在播放的歌曲'}
                           </Text>
                           <View style={[styles.playbackTagRow, styles.playbackTagRowLyrics]}>
@@ -1484,39 +1604,25 @@ function EchoLinkApp(): ReactElement {
                               <Text key={tag} style={styles.playbackTag}>{tag}</Text>
                             ))}
                           </View>
-                          <View style={[styles.outputSwitch, styles.outputSwitchLyrics]}>
-                            <Pressable
-                              accessibilityLabel="控制电脑播放"
-                              accessibilityRole="button"
-                              disabled={!client || phoneAudioBusy}
-                              onPress={switchToPcPlayback}
-                              style={[styles.outputSwitchButton, !isPhoneOutput ? styles.outputSwitchButtonActive : null]}
-                            >
-                              {renderButtonBlur(!isPhoneOutput ? 12 : 18)}
-                              <Text style={[styles.outputSwitchText, !isPhoneOutput ? styles.outputSwitchTextActive : null]}>
-                                控制
-                              </Text>
-                            </Pressable>
-                            <Pressable
-                              accessibilityLabel="串流到手机播放"
-                              accessibilityRole="button"
-                              disabled={!client || phoneAudioBusy}
-                              onPress={switchToPhonePlayback}
-                              style={[styles.outputSwitchButton, isPhoneOutput ? styles.outputSwitchButtonActive : null]}
-                            >
-                              {renderButtonBlur(isPhoneOutput ? 12 : 18)}
-                              <Text style={[styles.outputSwitchText, isPhoneOutput ? styles.outputSwitchTextActive : null]}>
-                                {phoneAudioBusy ? '...' : '串流'}
-                              </Text>
-                            </Pressable>
-                          </View>
-                          {renderSecondaryControls(true)}
                         </View>
+                        <Pressable
+                          accessibilityLabel="关闭歌词显示"
+                          accessibilityRole="button"
+                          onPress={() => setLyricsVisible(false)}
+                          style={styles.lyricsCloseButton}
+                        >
+                          {renderButtonBlur(18)}
+                          <Text style={styles.lyricsCloseText}>×</Text>
+                        </Pressable>
                       </View>
 
-                      <View style={styles.lyricsViewport}>
+                      <View
+                        onLayout={(event) => setLyricsViewportHeight(event.nativeEvent.layout.height)}
+                        style={styles.lyricsViewport}
+                      >
                         <ScrollView
                           contentContainerStyle={styles.lyricsScrollContent}
+                          ref={lyricsScrollRef}
                           showsVerticalScrollIndicator={false}
                         >
                           {lyricLines.map((line, index) => {
@@ -1528,6 +1634,9 @@ function EchoLinkApp(): ReactElement {
                                 accessibilityRole={line.timeMs === null ? undefined : 'button'}
                                 disabled={line.timeMs === null}
                                 key={line.id}
+                                onLayout={(event) => {
+                                  lyricLineLayoutsRef.current[line.id] = event.nativeEvent.layout;
+                                }}
                                 onPress={() => seekToLyric(line)}
                                 style={styles.lyricLineButton}
                               >
@@ -1552,64 +1661,51 @@ function EchoLinkApp(): ReactElement {
                       </View>
 
                       <View style={styles.lyricsControlPanel}>
+                        {renderOutputSwitch()}
                         <View style={styles.compactControlRow}>
                           {renderProgressScrubber(true)}
                           {renderExpandableVolume()}
                         </View>
                         {renderTransportControls(true)}
+                        {renderSecondaryControls(true)}
                       </View>
                     </Animated.View>
                   ) : (
                     <Animated.View style={[styles.defaultPlayerMode, defaultPlayerAnimatedStyle]}>
+                      <View style={styles.playerStatusBar}>
+                        <View style={styles.playerStatusLeft}>
+                          <Text style={styles.cardEyebrow}>Now Playing</Text>
+                          <Text style={styles.playerStatusText} numberOfLines={1}>{connectedLabel}</Text>
+                        </View>
+                        {renderConnectionChip('inline')}
+                      </View>
                       <View style={styles.artworkStage}>
+                        <View style={styles.artworkGlow} />
                         {renderArtwork('default')}
-                        {renderConnectionChip('floating')}
                       </View>
-                      <Text style={styles.trackTitle} numberOfLines={2}>{displayTrack?.title ?? '没有正在播放的歌曲'}</Text>
-                      <View style={styles.playbackTagRow}>
-                        {playbackTags.map((tag) => (
-                          <Text key={tag} style={styles.playbackTag}>{tag}</Text>
-                        ))}
+                      <View style={styles.trackInfoPanel}>
+                        <Text style={[styles.trackTitle, { fontSize: playerTitleSize }]} numberOfLines={2}>{displayTrack?.title ?? '没有正在播放的歌曲'}</Text>
+                        <View style={styles.playbackTagRow}>
+                          {playbackTags.map((tag) => (
+                            <Text key={tag} style={styles.playbackTag}>{tag}</Text>
+                          ))}
+                        </View>
                       </View>
-                      <View style={styles.outputSwitch}>
-                        <Pressable
-                          accessibilityLabel="控制电脑播放"
-                          accessibilityRole="button"
-                          disabled={!client || phoneAudioBusy}
-                          onPress={switchToPcPlayback}
-                          style={[styles.outputSwitchButton, !isPhoneOutput ? styles.outputSwitchButtonActive : null]}
-                        >
-                          {renderButtonBlur(!isPhoneOutput ? 12 : 18)}
-                          <Text style={[styles.outputSwitchText, !isPhoneOutput ? styles.outputSwitchTextActive : null]}>
-                            控制
-                          </Text>
-                        </Pressable>
-                        <Pressable
-                          accessibilityLabel="串流到手机播放"
-                          accessibilityRole="button"
-                          disabled={!client || phoneAudioBusy}
-                          onPress={switchToPhonePlayback}
-                          style={[styles.outputSwitchButton, isPhoneOutput ? styles.outputSwitchButtonActive : null]}
-                        >
-                          {renderButtonBlur(isPhoneOutput ? 12 : 18)}
-                          <Text style={[styles.outputSwitchText, isPhoneOutput ? styles.outputSwitchTextActive : null]}>
-                            {phoneAudioBusy ? '...' : '串流'}
-                          </Text>
-                        </Pressable>
-                      </View>
-                      {renderProgressScrubber()}
-                      <View style={styles.playerControls}>
+                      <View style={styles.playerControlDeck}>
+                        {renderProgressScrubber()}
                         {renderTransportControls()}
                         {renderSecondaryControls()}
                       </View>
 
-                      <View style={styles.playerDivider} />
-                      <View style={styles.volumePanel}>
+                      <View style={styles.playerUtilityGrid}>
+                        {renderOutputSwitch()}
+                        <View style={styles.volumePanel}>
                         <View style={styles.volumeHeader}>
                           <Text style={styles.cardEyebrow}>VOL</Text>
                           <Text style={styles.volumeValue}>{volumePercent}%</Text>
                         </View>
                         {renderVolumeSlider()}
+                        </View>
                       </View>
                     </Animated.View>
                   )}
@@ -1745,7 +1841,7 @@ const styles = StyleSheet.create({
   content: {
     gap: 18,
     padding: 18,
-    paddingBottom: 126,
+    paddingBottom: 144,
   },
   pageTransition: {
     gap: 18,
@@ -1760,13 +1856,13 @@ const styles = StyleSheet.create({
   },
   playerContent: {
     flexGrow: 1,
-    justifyContent: 'center',
-    paddingBottom: 104,
-    paddingTop: 8,
+    justifyContent: 'flex-start',
+    paddingBottom: 118,
+    paddingTop: 4,
   },
   playerContentLyrics: {
     justifyContent: 'flex-start',
-    paddingTop: 10,
+    paddingTop: 4,
   },
   header: {
     gap: 9,
@@ -1782,9 +1878,9 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#18181b',
-    fontSize: 36,
+    fontSize: 34,
     fontWeight: '900',
-    letterSpacing: -0.9,
+    letterSpacing: -0.8,
   },
   description: {
     color: '#666662',
@@ -1994,72 +2090,122 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   playerCard: {
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 2,
-    paddingTop: 0,
+    alignItems: 'stretch',
+    alignSelf: 'stretch',
+    backgroundColor: 'rgba(255, 255, 255, 0.64)',
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 32,
+    borderWidth: 1,
+    gap: 14,
+    overflow: 'hidden',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    shadowColor: '#18181b',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.09,
+    shadowRadius: 34,
   },
   playerCardLyrics: {
-    alignItems: 'stretch',
-    gap: 12,
+    backgroundColor: 'rgba(24, 24, 27, 0.9)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   defaultPlayerMode: {
-    alignItems: 'center',
-    gap: 10,
+    alignItems: 'stretch',
+    gap: 14,
     width: '100%',
   },
   lyricsMode: {
     alignSelf: 'stretch',
+    gap: 14,
+  },
+  lyricsTopBar: {
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: 12,
   },
-  lyricsHero: {
-    alignItems: 'flex-start',
+  playerCardBlur: {
+    ...StyleSheet.absoluteFill,
+  },
+  playerStatusBar: {
+    alignItems: 'center',
     flexDirection: 'row',
-    gap: 14,
+    justifyContent: 'space-between',
+    gap: 12,
     width: '100%',
   },
-  lyricsHeroLeft: {
-    alignItems: 'center',
+  playerStatusLeft: {
+    flex: 1,
+    gap: 4,
+  },
+  playerStatusText: {
+    color: '#57534e',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  trackInfoPanel: {
+    alignSelf: 'stretch',
     gap: 8,
-    width: 132,
+  },
+  playerControlDeck: {
+    alignSelf: 'stretch',
+    backgroundColor: 'rgba(255, 255, 255, 0.48)',
+    borderColor: 'rgba(255, 255, 255, 0.72)',
+    borderRadius: 28,
+    borderWidth: 1,
+    gap: 10,
+    padding: 12,
+  },
+  playerUtilityGrid: {
+    alignItems: 'stretch',
+    alignSelf: 'stretch',
+    gap: 10,
   },
   lyricsHeroText: {
     flex: 1,
     gap: 8,
-    minHeight: 174,
-    paddingTop: 2,
+    minWidth: 0,
+  },
+  lyricsCloseButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    borderRadius: 999,
+    borderWidth: 1,
+    height: 42,
+    justifyContent: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+    width: 42,
+  },
+  lyricsCloseText: {
+    color: '#f8fafc',
+    fontSize: 28,
+    fontWeight: '500',
+    includeFontPadding: false,
+    lineHeight: 30,
   },
   artworkStage: {
     alignItems: 'center',
     alignSelf: 'stretch',
     justifyContent: 'center',
-    minHeight: 252,
+    minHeight: 0,
     position: 'relative',
   },
   artworkShell: {
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: '#eeeeec',
-    borderColor: 'rgba(24, 24, 27, 0.1)',
-    borderRadius: 28,
+    backgroundColor: '#e8e8e4',
+    borderColor: 'rgba(24, 24, 27, 0.08)',
+    borderRadius: 32,
     borderWidth: 1,
     height: 252,
     justifyContent: 'center',
     overflow: 'hidden',
     shadowColor: '#18181b',
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.13,
-    shadowRadius: 34,
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.14,
+    shadowRadius: 32,
     width: 252,
-  },
-  artworkShellLyrics: {
-    alignSelf: 'flex-start',
-    borderRadius: 22,
-    height: 132,
-    shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    width: 132,
   },
   artworkImage: {
     bottom: 0,
@@ -2075,7 +2221,7 @@ const styles = StyleSheet.create({
   },
   artworkFallback: {
     alignItems: 'center',
-    backgroundColor: '#e5e5e5',
+    backgroundColor: 'rgba(255, 255, 255, 0.38)',
     bottom: 0,
     justifyContent: 'center',
     left: 0,
@@ -2084,14 +2230,23 @@ const styles = StyleSheet.create({
     top: 0,
   },
   artworkFallbackText: {
-    color: '#71717a',
-    fontSize: 40,
+    color: '#737373',
+    fontSize: 36,
     fontWeight: '900',
-    letterSpacing: 4,
+    letterSpacing: 3,
   },
   artworkFallbackTextLyrics: {
-    fontSize: 22,
+    fontSize: 20,
     letterSpacing: 2,
+  },
+  artworkGlow: {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 999,
+    height: 14,
+    opacity: 0.42,
+    position: 'absolute',
+    top: 0,
+    width: '58%',
   },
   playerConnectionChip: {
     backgroundColor: 'rgba(255, 255, 255, 0.74)',
@@ -2111,11 +2266,12 @@ const styles = StyleSheet.create({
     width: 112,
   },
   playerConnectionChipInline: {
-    alignSelf: 'stretch',
+    alignSelf: 'auto',
+    minWidth: 118,
     position: 'relative',
     right: undefined,
     top: undefined,
-    width: '100%',
+    width: 118,
   },
   playerConnectionChipError: {
     backgroundColor: 'rgba(254, 242, 242, 0.9)',
@@ -2154,17 +2310,17 @@ const styles = StyleSheet.create({
   },
   trackTitle: {
     color: '#18181b',
-    fontSize: 23,
-    fontWeight: '900',
-    letterSpacing: -0.3,
-    textAlign: 'center',
-  },
-  trackTitleLyrics: {
-    color: '#18181b',
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '900',
     letterSpacing: -0.35,
-    lineHeight: 27,
+    textAlign: 'left',
+  },
+  trackTitleLyrics: {
+    color: '#f8fafc',
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: -0.45,
+    lineHeight: 30,
   },
   trackMeta: {
     color: '#706b66',
@@ -2187,17 +2343,17 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     color: '#3f3f46',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
     overflow: 'hidden',
-    paddingHorizontal: 9,
+    paddingHorizontal: 8,
     paddingVertical: 4,
   },
   outputSwitch: {
     alignSelf: 'stretch',
-    backgroundColor: 'rgba(255, 255, 255, 0.68)',
+    backgroundColor: 'rgba(255, 255, 255, 0.56)',
     borderColor: 'rgba(39, 39, 42, 0.08)',
-    borderRadius: 999,
+    borderRadius: 24,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 4,
@@ -2208,9 +2364,9 @@ const styles = StyleSheet.create({
   },
   outputSwitchButton: {
     alignItems: 'center',
-    borderRadius: 999,
+    borderRadius: 20,
     flex: 1,
-    minHeight: 32,
+    minHeight: 42,
     justifyContent: 'center',
     overflow: 'hidden',
     paddingHorizontal: 10,
@@ -2225,7 +2381,7 @@ const styles = StyleSheet.create({
   },
   outputSwitchText: {
     color: '#706b66',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '800',
   },
   outputSwitchTextActive: {
@@ -2239,23 +2395,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   progressTrack: {
-    backgroundColor: '#dededc',
+    backgroundColor: 'rgba(24, 24, 27, 0.12)',
     borderRadius: 999,
-    height: 7,
+    height: 8,
     overflow: 'hidden',
     width: '100%',
   },
   compactProgressTrack: {
-    height: 6,
+    height: 8,
   },
   sliderTouchArea: {
     justifyContent: 'center',
-    minHeight: 30,
+    minHeight: 42,
     position: 'relative',
     width: '100%',
   },
   compactSliderTouchArea: {
-    minHeight: 24,
+    minHeight: 40,
   },
   progressFill: {
     backgroundColor: '#18181b',
@@ -2279,18 +2435,12 @@ const styles = StyleSheet.create({
   },
   progressText: {
     color: '#706b66',
-    fontSize: 12,
+    fontSize: 11,
     fontVariant: ['tabular-nums'],
-  },
-  playerControls: {
-    alignItems: 'center',
-    gap: 16,
-    paddingTop: 4,
-    width: '100%',
   },
   lyricsControlPanel: {
     alignSelf: 'stretch',
-    gap: 14,
+    gap: 12,
     paddingTop: 2,
   },
   compactControlRow: {
@@ -2300,51 +2450,51 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   lyricsViewport: {
-    backgroundColor: 'rgba(24, 24, 27, 0.86)',
-    borderColor: 'rgba(255, 255, 255, 0.16)',
-    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 28,
     borderWidth: 1,
-    height: 210,
+    minHeight: 278,
     overflow: 'hidden',
     shadowColor: '#18181b',
-    shadowOffset: { width: 0, height: 18 },
-    shadowOpacity: 0.18,
-    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.2,
+    shadowRadius: 28,
   },
   lyricsScrollContent: {
-    gap: 4,
+    gap: 6,
     paddingHorizontal: 18,
-    paddingVertical: 24,
+    paddingVertical: 22,
   },
   lyricLineButton: {
-    borderRadius: 14,
-    paddingHorizontal: 8,
-    paddingVertical: 7,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   lyricLineText: {
-    color: 'rgba(212, 212, 216, 0.48)',
-    fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: -0.1,
-    lineHeight: 21,
+    color: 'rgba(248, 250, 252, 0.36)',
+    fontSize: 19,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+    lineHeight: 28,
   },
   lyricLineTextNear: {
-    color: 'rgba(212, 212, 216, 0.68)',
+    color: 'rgba(248, 250, 252, 0.58)',
   },
   lyricLineTextFar: {
-    color: 'rgba(161, 161, 170, 0.42)',
+    color: 'rgba(203, 213, 225, 0.28)',
   },
   lyricLineTextActive: {
     color: '#ffffff',
-    fontSize: 18,
-    lineHeight: 25,
-    textShadowColor: 'rgba(255, 255, 255, 0.48)',
+    fontSize: 25,
+    lineHeight: 34,
+    textShadowColor: 'rgba(255, 255, 255, 0.28)',
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 12,
+    textShadowRadius: 10,
   },
   lyricTimestamp: {
-    color: 'rgba(161, 161, 170, 0.6)',
-    fontSize: 10,
+    color: 'rgba(203, 213, 225, 0.58)',
+    fontSize: 11,
     fontVariant: ['tabular-nums'],
     fontWeight: '800',
     marginTop: 2,
@@ -2352,18 +2502,18 @@ const styles = StyleSheet.create({
   transportRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 26,
+    gap: 16,
     justifyContent: 'center',
     width: '100%',
   },
   lyricsTransportRow: {
-    gap: 26,
+    gap: 16,
     paddingTop: 0,
   },
   secondaryControlsRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 20,
+    gap: 10,
     justifyContent: 'center',
     width: '100%',
   },
@@ -2377,7 +2527,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.84)',
     borderRadius: 999,
     borderWidth: 1,
-    height: 58,
+    height: 54,
     justifyContent: 'center',
     overflow: 'hidden',
     position: 'relative',
@@ -2385,28 +2535,28 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
-    width: 58,
+    width: 54,
   },
   roundButtonLyrics: {
-    height: 60,
-    width: 60,
+    height: 54,
+    width: 54,
   },
   roundButtonText: {
     color: '#27272a',
-    fontSize: 36,
+    fontSize: 34,
     fontWeight: '900',
     includeFontPadding: false,
     lineHeight: 38,
     textAlign: 'center',
   },
   roundButtonTextLyrics: {
-    fontSize: 37,
+    fontSize: 34,
   },
   playButton: {
     alignItems: 'center',
     backgroundColor: '#18181b',
     borderRadius: 999,
-    height: 78,
+    height: 86,
     justifyContent: 'center',
     overflow: 'hidden',
     position: 'relative',
@@ -2414,22 +2564,22 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 14 },
     shadowOpacity: 0.2,
     shadowRadius: 24,
-    width: 78,
+    width: 86,
   },
   playButtonLyrics: {
-    height: 82,
-    width: 82,
+    height: 88,
+    width: 88,
   },
   playButtonText: {
     color: '#ffffff',
-    fontSize: 29,
+    fontSize: 30,
     fontWeight: '900',
     includeFontPadding: false,
     lineHeight: 31,
     textAlign: 'center',
   },
   playButtonTextLyrics: {
-    fontSize: 30,
+    fontSize: 31,
   },
   playButtonTextPlay: {
     paddingLeft: 3,
@@ -2440,15 +2590,15 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.82)',
     borderRadius: 999,
     borderWidth: 1,
-    height: 46,
+    height: 48,
     justifyContent: 'center',
     overflow: 'hidden',
     position: 'relative',
-    width: 46,
+    width: 48,
   },
   repeatButtonCompact: {
-    height: 38,
-    width: 38,
+    height: 42,
+    width: 42,
   },
   repeatButtonActive: {
     backgroundColor: '#18181b',
@@ -2482,15 +2632,15 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.82)',
     borderRadius: 999,
     borderWidth: 1,
-    height: 46,
+    height: 48,
     justifyContent: 'center',
     overflow: 'hidden',
     position: 'relative',
-    width: 46,
+    width: 48,
   },
   lyricsButtonCompact: {
-    height: 38,
-    width: 38,
+    height: 42,
+    width: 42,
   },
   lyricsButtonActive: {
     backgroundColor: '#18181b',
@@ -2515,10 +2665,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: 'row',
     gap: 5,
-    height: 46,
+    height: 48,
     justifyContent: 'center',
     overflow: 'hidden',
-    minWidth: 58,
+    minWidth: 62,
     paddingHorizontal: 13,
     position: 'relative',
     shadowColor: '#18181b',
@@ -2527,8 +2677,8 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
   },
   playlistMiniButtonCompact: {
-    height: 38,
-    minWidth: 50,
+    height: 42,
+    minWidth: 54,
     paddingHorizontal: 11,
   },
   playlistMiniButtonActive: {
@@ -2537,14 +2687,14 @@ const styles = StyleSheet.create({
   },
   playlistMiniIcon: {
     color: '#18181b',
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '900',
     includeFontPadding: false,
     lineHeight: 19,
   },
   playlistMiniCount: {
     color: '#706b66',
-    fontSize: 13,
+    fontSize: 12,
     fontVariant: ['tabular-nums'],
     fontWeight: '900',
   },
@@ -2902,23 +3052,23 @@ const styles = StyleSheet.create({
   dock: {
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.38)',
-    borderColor: 'rgba(255, 255, 255, 0.86)',
-    borderRadius: 34,
+    backgroundColor: 'rgba(255, 255, 255, 0.42)',
+    borderColor: 'rgba(255, 255, 255, 0.88)',
+    borderRadius: 36,
     borderWidth: 1,
-    bottom: 18,
+    bottom: 14,
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
     justifyContent: 'center',
-    left: 20,
+    left: 16,
     overflow: 'hidden',
-    padding: 7,
+    padding: 8,
     position: 'absolute',
-    right: 20,
+    right: 16,
     shadowColor: '#18181b',
-    shadowOffset: { width: 0, height: 22 },
+    shadowOffset: { width: 0, height: 18 },
     shadowOpacity: 0.14,
-    shadowRadius: 34,
+    shadowRadius: 28,
   },
   dockBlur: {
     bottom: 0,
@@ -2929,13 +3079,13 @@ const styles = StyleSheet.create({
   },
   dockItem: {
     alignItems: 'center',
-    borderRadius: 28,
+    borderRadius: 26,
     flex: 1,
     gap: 4,
-    minHeight: 56,
+    minHeight: 58,
     justifyContent: 'center',
     overflow: 'hidden',
-    paddingVertical: 8,
+    paddingVertical: 9,
     position: 'relative',
   },
   dockItemActive: {
@@ -2949,7 +3099,7 @@ const styles = StyleSheet.create({
   },
   dockIcon: {
     color: '#77736d',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '900',
     includeFontPadding: false,
     lineHeight: 23,
@@ -2959,7 +3109,7 @@ const styles = StyleSheet.create({
   },
   dockLabel: {
     color: '#77736d',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
   },
   dockLabelActive: {
