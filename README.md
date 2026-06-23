@@ -5,43 +5,61 @@
 <h1 align="center">ECHO iPhone</h1>
 
 <p align="center">
-  一款为 <a href="https://github.com/Moekotori/ECHO">ECHO NEXT</a> 打造的非官方 iPhone 音乐伴侣。
+  一款为 <a href="https://github.com/Moekotori/ECHO">ECHO NEXT</a> 打造的非官方 iPhone 控制/串流端。
 </p>
 
 <p align="center">
   <strong>中文</strong> · <a href="README.en.md">English</a> · <a href="RELEASE_NOTES.md">Release Notes</a>
 </p>
 
-![ECHO iPhone ACG preview](docs/preview.svg)
-
 > 这是一个非官方社区项目，不隶属于 ECHO NEXT 官方仓库。
->
-> 如果你有版权、建议或问题反馈，可以在 [ECHO 官方 QQ 群](https://qm.qq.com/q/OdpngxJU86) 联系 @白雪ユキ。
+
+> 如果你有所属权、建议或问题反馈，可以在 [ECHO 官方 QQ 群](https://qm.qq.com/q/OdpngxJU86) 联系 @白雪ユキ。
+
+> 未来可能制作成可以独立的播放器 但本项目暂时只为Echo Link服务 上游更新会即时同步至此
+
+> 如果ECHO NEXT更新了IOS端 我会在此项目标出并且停止更新
+
+> 这个项目是我的第一个作品 可能做的很烂 可能烂尾 本项目主要是为了证明windows可以全流程制作ios端软件(除了签名和发布)/还有自己使用IOS端的方便 感谢理解<3
 
 ## 这是什么
 
-ECHO iPhone 是 ECHO NEXT 的非官方 iPhone 端。它通过 EchoLink 连接电脑端，用手机查看当前播放、控制播放、浏览曲库，并在支持时把电脑上的本地音频串流到 iPhone。
+ECHO iPhone 把 iPhone 变成 ECHO NEXT 桌面端的音乐控制/播放器。它通过 EchoLink 连接电脑端，读取当前播放状态，浏览电脑本地曲库，控制播放、进度、音量、队列，并在支持的音频格式下把歌曲串流到手机播放。
 
-它不是独立播放器。电脑端仍负责曲库、播放队列、歌词、封面和音频信息；手机端负责控制、展示和串流。
+暂时重做了 UI：播放页，封面、歌词、控制区和 dock 都重新整理成统一的玻璃质感界面。歌词界面使用更大的字号、自动滚动和当前行高亮，适合把手机直接当成正在播放的歌词屏。
 
-## 主要功能
+## 功能亮点
 
-- 播放：播放 / 暂停、上一首、下一首、进度拖动、音量拖动。
-- 歌词：读取桌面端歌词，支持 LRC 自动滚动和点击歌词跳转。
-- 曲库：浏览电脑端曲库，搜索歌曲，筛选全部 / 可串流 / 本地。
-- 串流：支持的本地音频可以从电脑串流到手机播放。
-- 播放列表：在播放页打开当前队列预览。
-- 音频 tag：显示 Local、可串流、WASAPI / ASIO、FLAC 48kHz/24bit、码率、时长等信息。
-- 设置：选择中文 / English，选择哪些音频 tag 显示。
-- 连接：支持 `echo://pair?...` 配对链接，也支持手动填写 Host、Port、Token。
+- EchoLink 配对链接连接：支持 `echo://pair?...` 一键填入。
+- 手动局域网连接：Host、Port、Token 可独立保存。
+- 播放、曲库、连接三页，支持底部 dock 和左右滑动切换。
+- 播放页满版重构：封面、歌曲信息、进度、播放控制、音量和输出切换更紧凑。
+- 高斯玻璃 UI：播放面板、按钮、dock 和弹层使用 `expo-blur` 统一风格。
+- 歌词模式：拉取 `/lyrics`、解析 LRC、自动滚动、当前歌词大字号高亮。
+- 歌词点击跳转：有时间戳的歌词行可以直接 seek。
+- 稳定封面加载：新封面加载成功前保留上一张封面，减少默认封面闪动。
+- 滑条断触修复：进度条和音量条拖动时锁住页面手势，避免界面上滑抢触摸。
+- 播放控制：上一首、播放/暂停、下一首、单曲循环、播放列表预览。
+- 曲库搜索：浏览 PC 本地曲库，并从手机点歌到电脑端播放。
+- 输出切换：可控制电脑播放，也可在支持时串流到 iPhone。
+- 音频信息标签：Local、可串流、WASAPI/ASIO、格式、采样率、位深、码率等。
 
-## 使用前提
+## 当前限制
 
-- 电脑端需要运行 ECHO NEXT，并开启 EchoLink。
+- 电脑端必须开启 ECHO NEXT 的 EchoLink。
 - iPhone 和电脑需要在同一个局域网。
 - Windows 防火墙需要允许 ECHO NEXT 通信。
-- 手机串流取决于桌面端 stream 接口和 iOS 可播放的音频格式。
-- 封面、歌词和音频 tag 取决于桌面端返回的数据。
+- 手机串流依赖桌面端 stream 接口，以及 iOS 可播放的音频格式。
+- 封面、歌词和音频 tag 取决于桌面端 EchoLink 返回的数据。
+- 本仓库是 Expo / React Native 项目，不是原生 SwiftUI 项目。
+
+## 环境要求
+
+- Node.js 与 npm
+- Expo，通过 `npx expo`
+- 本地 iOS 构建需要 macOS + Xcode
+- Windows 用户可以通过 GitHub Actions 触发 macOS runner 生成未签名 IPA
+- 真机安装需要 Sideloadly、AltStore、Xcode 或其他签名安装方式
 
 ## 本地运行
 
@@ -53,37 +71,45 @@ npm run start
 类型检查：
 
 ```powershell
-npm.cmd run typecheck
+npm run typecheck
 ```
 
-iOS 导出检查：
+iOS Expo 导出检查：
 
 ```powershell
-npx.cmd expo export --platform ios --output-dir build\export-check
+npx expo export --platform ios --output-dir build\export-check
 ```
 
-## 连接电脑端
+## 连接 ECHO NEXT
 
-配对链接示例：
+可以使用配对链接，也可以手动输入局域网地址。
 
 ```text
 echo://pair?host=192.168.1.12&port=26789&token=...
 ```
 
-手动连接：
+手动连接字段：
 
 - Host：电脑局域网 IP，例如 `192.168.2.27`
-- Port：默认通常是 `26789`
-- Token：从 ECHO NEXT 的 EchoLink 配对界面复制
+- Port：通常是 `26789`
+- Token：从桌面端 EchoLink 配对界面复制
 
-连接失败时，先检查是否同一 Wi-Fi / LAN、EchoLink 是否开启、防火墙是否放行、Host 是否填了电脑局域网 IP、iOS 是否允许本地网络权限。
+如果连接失败，优先检查：
 
-## 当前使用的 EchoLink 接口
+- iPhone 和电脑是否在同一个 Wi-Fi / LAN。
+- ECHO NEXT 是否正在运行，EchoLink 是否开启。
+- Windows 防火墙是否允许 ECHO NEXT 在专用网络通信。
+- Host 是否填写电脑局域网 IP，而不是 `localhost`、虚拟网卡 IP 或公网 IP。
+- iOS 是否允许本地网络权限。
+
+## EchoLink 接口
+
+移动端当前使用：
 
 ```text
 GET  /echo-link/v1/status
-GET  /echo-link/v1/library/tracks
-GET  /echo-link/v1/library/albums
+GET  /echo-link/v1/library/tracks?page=1&pageSize=40&q=...
+GET  /echo-link/v1/library/albums?page=1&pageSize=40&q=...
 GET  /echo-link/v1/library/albums/:albumId/tracks
 POST /echo-link/v1/playback/command
 POST /echo-link/v1/library/tracks/:trackId/stream
@@ -97,17 +123,19 @@ Authorization: Bearer <token>
 x-echo-link-version: 1
 ```
 
-## 构建 IPA
+## 构建未签名 IPA
 
-Windows 不能直接本地构建 iOS IPA，可以用 GitHub Actions 的 macOS runner。
+iOS 构建仍然依赖 macOS 和 Xcode。Windows 不能直接生成可用 IPA，但可以触发 GitHub Actions。
 
-1. 推送仓库到 GitHub。
+### GitHub Actions
+
+1. 推送本仓库到 GitHub。
 2. 打开 GitHub Actions。
 3. 运行 `Build iOS unsigned IPA`。
-4. 下载 `ECHO-iPhone-unsigned-ipa`。
-5. 用 Sideloadly、AltStore、Xcode 或其他工具签名安装。
+4. 下载 `ECHO-iPhone-unsigned-ipa` artifact。
+5. 使用 Sideloadly、AltStore 或其他方式签名安装。
 
-本地 Mac 构建：
+### 本地 Mac 构建
 
 ```bash
 bash scripts/build-unsigned-ipa-for-sideloadly.sh
