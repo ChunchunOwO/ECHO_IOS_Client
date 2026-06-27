@@ -1,6 +1,6 @@
 {
   "name": "echo-ios",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "private": true,
   "main": "expo/AppEntry.js",
   "scripts": {
@@ -10,12 +10,17 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
-    "expo": "56.0.11",
+    "echo-audio-dsp": "file:modules/echo-audio-dsp",
+    "expo": "~56.0.12",
     "expo-audio": "~56.0.12",
     "expo-blur": "^56.0.3",
+    "expo-document-picker": "~56.0.4",
+    "expo-file-system": "~56.0.8",
     "expo-image": "~56.0.11",
     "react": "19.2.3",
-    "react-native": "0.85.3"
+    "react-native": "0.85.3",
+    "react-native-svg": "15.15.4",
+    "supercons": "^0.2.0"
   },
   "devDependencies": {
     "@types/react": "19.2.17",

@@ -5,7 +5,7 @@
 <h1 align="center">ECHO iPhone</h1>
 
 <p align="center">
-  An unofficial iPhone control / streaming client built for <a href="https://github.com/Moekotori/ECHO">ECHO NEXT</a>.
+  An independent iPhone music player that can connect to <a href="https://github.com/Moekotori/ECHO">ECHO NEXT</a> through EchoLink and also play local music on the phone.
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@
 
 > If you have any ownership claims, suggestions, or feedback, you can contact @白雪ユキ in the [official ECHO QQ group](https://qm.qq.com/q/OdpngxJU86).
 
-> This project may become an independent music player in the future, but for now it only serves EchoLink. Upstream updates will be synchronized here as soon as possible.
+> This project is positioned as an independent music player. EchoLink is one source for connection, control, and streaming, and upstream compatibility will continue to be synchronized here.
 
 > If ECHO NEXT releases an official iOS client, I will mark it in this project and stop updating this repository.
 
@@ -24,33 +24,47 @@
 
 ## What is this?
 
-ECHO iPhone turns your iPhone into a music controller / player for the ECHO NEXT desktop app. It connects to the computer through EchoLink, reads the current playback status, browses the local music library on the computer, controls playback, progress, volume, and queue, and can stream songs to the phone for playback when the audio format is supported.
+ECHO iPhone is an iPhone music player. It can scan and play music stored locally on the phone, and it can connect to ECHO NEXT through EchoLink to browse the desktop library, control desktop playback, or stream desktop music to the phone.
 
-The UI has temporarily been redesigned. The playback page, cover art, lyrics, control area, and dock have all been reorganized into a unified glass-style interface. The lyrics page uses a larger font size, automatic scrolling, and current-line highlighting, making it suitable for using the phone directly as a lyrics display while music is playing.
+Starting from 0.5.0, local and streamed playback can use a native iOS DSP engine. EQ presets, loudness normalization, volume, and seeking are applied to the real audio path. Connection information, language, audio tags, EQ, and external-data settings are persisted locally.
 
 ## Features
 
+- Independent playback modes: Local, Control, and Streaming can be switched from the playback page.
+- Local library: import, scan, favorites, recently played, local queue, and imported LRC lyrics.
+- Library source switch: the Library page can switch between the ECHO library and the phone library. The local library supports songs, albums, artists, formats, favorites, and recently played views.
 - EchoLink pairing link connection: supports one-tap filling through `echo://pair?...`.
-- Manual LAN connection: Host, Port, and Token can be saved separately.
-- Three main pages: Playback, Library, and Connection, with bottom dock and swipe navigation.
-- Redesigned full playback page: cover art, song information, progress, playback controls, volume, and output switching are more compact.
-- Gaussian glass UI: playback panels, buttons, dock, and popups use a unified `expo-blur` style.
-- Lyrics mode: fetches `/lyrics`, parses LRC, auto-scrolls, and highlights the current lyric line with a larger font.
+- Manual LAN connection: Host, Port, and Token are saved locally, so the pairing link does not need to be pasted every time.
+- The Connection page now has an ECHO connection switch. It is off by default; when off, the app does not poll the desktop app or show connection-error alerts.
+- The Connection page adds a "Connect ECHO / Streaming" switch. The Streaming entry is present but not open yet.
+- Four main pages: Playback, Library, Connection, and Settings, with a glass bottom dock and swipe navigation.
+- Redesigned playback page: cover art, track information, tags, progress, playback controls, volume, EQ, playlist, and output switching are gathered into one player view.
+- Gaussian glass UI: playback panels, buttons, dock, alerts, and popovers use a unified `expo-blur` style.
+- Real DSP: local / streamed playback supports native iOS DSP, EQ presets, and loudness normalization.
+- EQ presets: Flat, Bass, Vocal, Clarity, Warm, and Late Night.
+- Expandable volume control: the expanded slider is longer and shows the current percentage.
+- Playlist popover: opens inside the playback page with an enter / exit animation.
+- Lyrics mode: supports local LRC, EchoLink `/lyrics`, LRCLIB, and NetEase Cloud Music results, parses LRC, auto-scrolls, and highlights the current lyric line.
 - Tap-to-seek lyrics: lyric lines with timestamps can be tapped to seek directly.
-- Stable cover loading: keeps the previous cover before the new one is successfully loaded, reducing default-cover flickering.
+- External data: LRCLIB is preferred for lyrics. NetEase Cloud Music supplements cover art and Chinese-library lyrics. If EchoLink does not return cover art or the image fails to load, the app can try an external cover.
+- Stable cover loading: keeps the previous cover before the new one is successfully loaded, reducing default-cover flickering and blank states.
 - Slider touch interruption fix: page gestures are locked while dragging the progress bar or volume slider to prevent vertical swipes from stealing touch input.
 - Playback controls: previous track, play / pause, next track, repeat one, and playlist preview.
 - Library search: browse the PC local music library and select songs from the phone to play on the computer.
-- Output switching: control playback on the computer, or stream to the iPhone when supported.
+- Output switching: play locally, control playback on the computer, or stream to the iPhone when supported.
 - Audio information tags: Local, streamable, WASAPI / ASIO, format, sample rate, bit depth, bitrate, and more.
+- Settings page: grouped expandable sections for language, launch page, default library, audio tags, EQ, loudness normalization, external data, and storage management.
+- Local persistence: connection information, settings, local favorites, recently played items, and the local queue are stored in app data.
 
 ## Current Limitations
 
-- ECHO NEXT EchoLink must be enabled on the computer.
+- ECHO library access, desktop control, and desktop streaming require EchoLink to be enabled in ECHO NEXT.
 - The iPhone and computer must be on the same LAN.
 - Windows Firewall must allow ECHO NEXT communication.
-- Mobile streaming depends on the desktop stream interface and audio formats supported by iOS.
-- Cover art, lyrics, and audio tags depend on the data returned by the desktop EchoLink service.
+- Mobile streaming depends on the desktop stream interface; DSP mode caches streamed audio before playback.
+- External data is off by default. LRCLIB and NetEase Cloud Music can be enabled separately and require internet access on the phone.
+- NetEase Cloud Music uses an unofficial public endpoint, so availability depends on the upstream service.
+- Cover art, lyrics, and audio tags prefer local files or desktop EchoLink data first.
 - This repository is an Expo / React Native project, not a native SwiftUI project.
 
 ## Requirements
@@ -82,7 +96,7 @@ npx expo export --platform ios --output-dir build\export-check
 
 ## Connecting to ECHO NEXT
 
-You can use a pairing link or manually enter the LAN address.
+The Connection page does not automatically connect to ECHO by default. Turn on "Enable ECHO connection" first, then use a pairing link or manually enter the LAN address.
 
 ```text
 echo://pair?host=192.168.1.12&port=26789&token=...
@@ -94,6 +108,8 @@ Manual connection fields:
 - Port: usually `26789`
 - Token: copied from the EchoLink pairing page in the desktop app
 
+Connection information is stored locally through AsyncStorage. After it is saved, the app does not need the pairing link again. Turning off the ECHO connection switch keeps the saved information but stops connection attempts and connection-error alerts.
+
 If the connection fails, check the following first:
 
 - Whether the iPhone and computer are connected to the same Wi-Fi / LAN.
@@ -101,6 +117,15 @@ If the connection fails, check the following first:
 - Whether Windows Firewall allows ECHO NEXT communication on private networks.
 - Whether Host is set to the computer's LAN IP instead of `localhost`, a virtual network adapter IP, or a public IP.
 - Whether iOS local network permission is allowed.
+
+## Settings and External Data
+
+- Connection information is stored in `src/storage/connectionStore.ts`.
+- App settings are stored in local app data, including language, launch page, default library, audio tags, EQ, loudness normalization, the ECHO connection switch, the LRCLIB switch, and the NetEase Cloud Music switch.
+- Local music state is stored in `src/storage/localMusicStore.ts`, including favorites, recently played items, and the local queue.
+- LRCLIB is preferred for song lyrics and related lyric data.
+- NetEase Cloud Music is used mainly for cover art and can also provide Chinese-library lyric fallback.
+- External data is a fallback: local LRC, EchoLink lyrics, and existing cover art are used first; external results are used when those are missing or fail to load.
 
 ## EchoLink API
 
@@ -161,17 +186,22 @@ The script will open the generated Xcode workspace. Select your own Apple ID Tea
 - `docs/app-icon.svg` is a lightweight display version of the same style.
 - `docs/preview.svg` is the ACG-style feature preview image at the top of the README.
 - `Assets.car` can be placed in the repository root. The unsigned IPA script will copy it into the final `.app` during packaging.
-- Song cover art is loaded from EchoLink artwork URLs. If the remote image fails to load, the mobile client will keep the stable cover or show the ECHO placeholder.
+- Song cover art prefers local files or EchoLink artwork URLs. If no cover is returned or the image fails to load, the app can try a NetEase Cloud Music cover before keeping the stable cover or showing the ECHO placeholder.
 
 ## Project Structure
 
 ```text
-App.tsx                         Main UI, playback controls, lyrics, and streaming logic
+App.tsx                         Main UI, playback controls, lyrics, local playback, streaming, and settings
 app.json                        Expo iOS configuration
+modules/echo-audio-dsp/         Native iOS DSP playback module
+src/components/                 Internal app icon components
 src/echoLink/client.ts          EchoLink HTTP client
 src/echoLink/types.ts           Mobile EchoLink types
 src/echoLink/pairing.ts         Pairing URI parser
+src/localMusic/                 Local music scanning, import, metadata, and lyrics
 src/storage/connectionStore.ts  Local connection information storage
+src/storage/localMusicStore.ts  Local music state storage
+src/storage/settingsStore.ts    Settings persistence
 scripts/                        iOS build helper scripts
 .github/workflows/              Unsigned IPA workflow
 docs/                           Icons, preview images, and README assets
@@ -187,6 +217,7 @@ Recommended files to upload:
 - `app.json`
 - `App.tsx`
 - `Assets.car`
+- `modules/`
 - `package.json`
 - `package-lock.json`
 - `README.md`

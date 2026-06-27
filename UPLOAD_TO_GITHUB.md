@@ -1,21 +1,6 @@
 # Upload To GitHub
 
-Upload these source files and folders:
-
-- `.github/workflows/build-ios-unsigned.yml`
-- `.gitattributes`
-- `.gitignore`
-- `app.json`
-- `App.tsx`
-- `Assets.car`
-- `package.json`
-- `package-lock.json`
-- `README.md`
-- `tsconfig.json`
-- `scripts/`
-- `src/`
-
-Do not upload:
+Just Do Not upload:
 
 - `node_modules/`
 - `build/`

@@ -3,7 +3,7 @@
     "name": "ECHO iPhone",
     "slug": "echo-ios",
     "scheme": "echo",
-    "version": "0.1.0",
+    "version": "0.5.0",
     "icon": "./docs/app-icon.png",
     "platforms": [
       "ios"

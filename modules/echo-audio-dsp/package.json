@@ -1,0 +1,14 @@
+{
+  "name": "echo-audio-dsp",
+  "version": "0.1.0",
+  "description": "Native iOS DSP playback engine for ECHO iPhone.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "sideEffects": false,
+  "peerDependencies": {
+    "expo": "*",
+    "expo-modules-core": "*",
+    "react": "*",
+    "react-native": "*"
+  }
+}
